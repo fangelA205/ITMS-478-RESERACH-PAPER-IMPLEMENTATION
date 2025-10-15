@@ -1,0 +1,99 @@
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense
+import numpy as np
+
+# --- Data Reshaping ---
+# We treat each feature column as a time step with 1 feature.
+FEATURES = 1
+
+# Get TIME_STEPS from the current shape of the dataframes
+TIME_STEPS_A = X_a_train.shape[1]
+TIME_STEPS_B = X_b_train.shape[1]
+
+# Reshape all four datasets
+X_a_train_cnn = np.expand_dims(X_a_train, axis=2)
+X_a_test_cnn = np.expand_dims(X_a_test, axis=2)
+X_b_train_cnn = np.expand_dims(X_b_train, axis=2)
+X_b_test_cnn = np.expand_dims(X_b_test, axis=2)
+
+
+def build_cnn_model(input_shape):
+    """Builds a simple 1D CNN model for tabular data."""
+    model = Sequential([
+        Conv1D(filters=32, kernel_size=2, activation='relu', input_shape=input_shape),
+        MaxPooling1D(pool_size=2),
+        Flatten(),
+        Dense(50, activation='relu'),
+        Dense(1, activation='sigmoid') # Binary classification output
+    ])
+    model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# --- 1. Train and Evaluate on Dataset A (UNSW-NB15) ---
+print("\n--- Training CNN on Dataset A (UNSW-NB15) ---")
+cnn_model_a = build_cnn_model((TIME_STEPS_A, FEATURES))
+
+# Fit the model (verbose=0 minimizes output)
+cnn_model_a.fit(X_a_train_cnn, y_a_train, epochs=10, batch_size=64, verbose=0)
+loss_a, accuracy_a_cnn = cnn_model_a.evaluate(X_a_test_cnn, y_a_test, verbose=0)
+
+print(f"\nUNSW-NB15 CNN Accuracy: {accuracy_a_cnn:.4f}")
+
+# Generate classification report
+y_a_pred_cnn = (cnn_model_a.predict(X_a_test_cnn) > 0.5).astype("int32")
+print("\nUNSW-NB15 Classification Report:")
+print(classification_report(y_a_test, y_a_pred_cnn, zero_division=0))
+
+
+# --- 2. Train and Evaluate on Dataset B (KDD Cup 1999) ---
+print("\n--- Training CNN on Dataset B (KDD Cup 1999) ---")
+cnn_model_b = build_cnn_model((TIME_STEPS_B, FEATURES))
+
+# Fit the model (verbose=0 minimizes output)
+cnn_model_b.fit(X_b_train_cnn, y_b_train, epochs=10, batch_size=64, verbose=0)
+loss_b, accuracy_b_cnn = cnn_model_b.evaluate(X_b_test_cnn, y_b_test, verbose=0)
+
+print(f"\nKDD Cup 1999 CNN Accuracy: {accuracy_b_cnn:.4f}")
+
+# Generate classification report
+y_b_pred_cnn = (cnn_model_b.predict(X_b_test_cnn) > 0.5).astype("int32")
+print("\nKDD Cup 1999 Classification Report:")
+print(classification_report(y_b_test, y_b_pred_cnn, zero_division=0))
+
+#The following output was displayed#
+
+--- Training CNN on Dataset A (UNSW-NB15) ---
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+
+UNSW-NB15 CNN Accuracy: 0.9855
+772/772 ━━━━━━━━━━━━━━━━━━━━ 1s 2ms/step
+
+UNSW-NB15 Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.99      0.98      0.98     11100
+           1       0.98      0.99      0.99     13600
+
+    accuracy                           0.99     24700
+   macro avg       0.99      0.98      0.99     24700
+weighted avg       0.99      0.99      0.99     24700
+
+
+--- Training CNN on Dataset B (KDD Cup 1999) ---
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+
+KDD Cup 1999 CNN Accuracy: 0.9973
+1365/1365 ━━━━━━━━━━━━━━━━━━━━ 3s 2ms/step
+
+KDD Cup 1999 Classification Report:
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     26350
+           1       1.00      1.00      1.00     17326
+
+    accuracy                           1.00     43676
+   macro avg       1.00      1.00      1.00     43676
+weighted avg       1.00      1.00      1.00     43676
