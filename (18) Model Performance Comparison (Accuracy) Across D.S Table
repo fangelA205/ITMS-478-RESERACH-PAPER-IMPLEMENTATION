@@ -1,0 +1,56 @@
+import matplotlib.pyplot as plt
+import pandas as pd
+import numpy as np
+
+# Final Results Summary (Updated with KDD Hybrid results)
+results = {
+    'Model': [
+        'RF (UNSW)', 'CNN (UNSW)', 'Hybrid (UNSW)',
+        'RF (KDD)', 'CNN (KDD)', 'Hybrid (KDD)'
+    ],
+    'Dataset': [
+        'UNSW-NB15', 'UNSW-NB15', 'UNSW-NB15',
+        'KDD Cup 1999', 'KDD Cup 1999', 'KDD Cup 1999'
+    ],
+    'Accuracy': [0.9984, 0.9855, 0.9951, 0.9995, 0.9973, 0.9973],
+    'F1_Score': [1.00, 0.99, 1.00, 1.00, 1.00, 1.00]
+}
+
+df_results = pd.DataFrame(results)
+
+# Prepare data for plotting
+labels = df_results['Model']
+# Plotting Accuracy as it shows slightly more variation
+performance_metric = df_results['Accuracy']
+
+x = np.arange(len(labels))
+width = 0.6
+
+fig, ax = plt.subplots(figsize=(12, 6))
+# Assigning different colors to emphasize model type (RF, CNN, Hybrid)
+colors = ['#1f77b4', '#ff7f0e', '#2ca02c', '#1f77b4', '#ff7f0e', '#2ca02c']
+rects = ax.bar(x, performance_metric, width, color=colors)
+
+# Add some text for labels, title and custom x-axis tick labels, etc.
+ax.set_ylabel('Accuracy Score')
+ax.set_title('Model Performance Comparison (Accuracy) Across Datasets')
+ax.set_xticks(x)
+ax.set_xticklabels(labels, rotation=45, ha="right")
+ax.set_ylim(0.98, 1.005) # Zoom in to highlight differences
+ax.grid(axis='y', linestyle='--', alpha=0.7)
+
+# Label with scores
+def autolabel(rects):
+    for rect in rects:
+        height = rect.get_height()
+        ax.annotate(f'{height:.4f}',
+                    xy=(rect.get_x() + rect.get_width() / 2, height),
+                    xytext=(0, 3),  # 3 points vertical offset
+                    textcoords="offset points",
+                    ha='center', va='bottom')
+
+autolabel(rects)
+
+plt.tight_layout()
+plt.show() 
+
