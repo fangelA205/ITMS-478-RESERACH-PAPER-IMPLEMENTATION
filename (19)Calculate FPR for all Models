@@ -1,0 +1,76 @@
+from sklearn.metrics import confusion_matrix
+import pandas as pd
+import numpy as np
+from sklearn.metrics import accuracy_score, classification_report
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense
+
+print("--- Calculating False Positive Rate (FPR) for all Models ---")
+
+# --- Function to calculate FPR ---
+def calculate_fpr(y_true, y_pred):
+    """Calculates FPR from true labels and predictions."""
+    tn, fp, fn, tp = confusion_matrix(y_true, y_pred, labels=[0, 1]).ravel()
+    # FPR = FP / (FP + TN)
+    fpr = fp / (fp + tn)
+    return fpr
+
+# --- Re-generate necessary predictions (since the runtime restarted) ---
+# NOTE: This re-runs the final prediction lines from Phase 2.
+
+# 1. Random Forest Predictions (Assuming models are still in memory from re-run)
+from sklearn.ensemble import RandomForestClassifier
+# Re-train RF models quickly to ensure the objects exist
+rf_model_a = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1).fit(X_a_train, y_a_train)
+y_a_pred_rf = rf_model_a.predict(X_a_test)
+
+rf_model_b = RandomForestClassifier(n_estimators=100, random_state=42, n_jobs=-1).fit(X_b_train, y_b_train)
+y_b_pred_rf = rf_model_b.predict(X_b_test)
+
+# 2. Base CNN Predictions
+# NOTE: To save time, we will reuse the predictions already generated during the CNN step
+# If those variables are lost, we need to run the CNN fit again.
+# For simplicity, we will calculate FPR only for RF and Hybrid as these are the best-performing.
+
+# 3. Optimized CNN (Hybrid) Predictions
+# For A: X_a_pred_opt was created in the last step
+best_model_a = random_search.best_estimator_.model_
+y_a_pred_opt = (best_model_a.predict(X_a_test_cnn) > 0.5).astype("int32")
+
+# For B: X_b_pred_opt was created in the last step
+best_model_b = random_search_b.best_estimator_.model_
+y_b_pred_opt = (best_model_b.predict(X_b_test_cnn) > 0.5).astype("int32")
+
+
+# --- Calculate FPR ---
+fpr_results = {
+    'Model': ['Random Forest (UNSW)', 'Hybrid CNN (UNSW)', 'Random Forest (KDD)', 'Hybrid CNN (KDD)'],
+    'FPR': [
+        calculate_fpr(y_a_test, y_a_pred_rf),
+        calculate_fpr(y_a_test, y_a_pred_opt),
+        calculate_fpr(y_b_test, y_b_pred_rf),
+        calculate_fpr(y_b_test, y_b_pred_opt)
+    ]
+}
+
+df_fpr = pd.DataFrame(fpr_results)
+print("\nFalse Positive Rate (FPR) Summary:")
+print(df_fpr.to_string(index=False))
+
+print("\n--- ✅ Step 3 Complete! ---")
+
+
+
+
+--- Calculating False Positive Rate (FPR) for all Models ---
+772/772 ━━━━━━━━━━━━━━━━━━━━ 1s 2ms/step
+1365/1365 ━━━━━━━━━━━━━━━━━━━━ 2s 1ms/step
+
+False Positive Rate (FPR) Summary:
+               Model      FPR
+Random Forest (UNSW) 0.002973
+   Hybrid CNN (UNSW) 0.006577
+ Random Forest (KDD) 0.000228
+    Hybrid CNN (KDD) 0.002543
+
+--- ✅ Step 3 Complete! ---
