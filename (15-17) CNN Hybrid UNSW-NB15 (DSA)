@@ -1,0 +1,349 @@
+
+from sklearn.model_selection import RandomizedSearchCV
+from scikeras.wrappers import KerasClassifier
+from scipy.stats import randint as sp_randint
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense
+import tensorflow as tf
+import numpy as np
+
+# Define necessary constants
+TIME_STEPS_A = X_a_train.shape[1]
+FEATURES = 1
+
+print("\n--- Setting up Hybrid Model (CNN + Optimization Proxy) on Dataset A ---")
+
+# Define a function to create the Keras model with tunable hyperparameters
+def create_tunable_cnn(filters=32, dense_units=50, kernel_size=2, learning_rate=0.001):
+    """Creates a CNN model instance with tunable hyperparameters."""
+    model = Sequential([
+        Conv1D(filters=filters, kernel_size=kernel_size, activation='relu', input_shape=(TIME_STEPS_A, FEATURES)),
+        MaxPooling1D(pool_size=2),
+        Flatten(),
+        Dense(dense_units, activation='relu'),
+        Dense(1, activation='sigmoid')
+    ])
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# Wrap the Keras model for Scikit-learn compatibility
+model_wrapper = KerasClassifier(
+    model=create_tunable_cnn,
+    verbose=0,
+    loss="binary_crossentropy",
+    metrics=["accuracy"],
+    filters=32,
+    dense_units=50,
+    kernel_size=2,
+    learning_rate=0.001
+)
+
+# Define the search space for hyperparameters
+param_dist = {
+    'filters': sp_randint(16, 64),
+    'dense_units': sp_randint(30, 100),
+    'batch_size': [32, 64, 128],
+    'epochs': [5, 10],
+    'model__learning_rate': [0.01, 0.001]
+}
+
+# Use Random Search as a proxy for the Metaheuristic Optimization
+random_search = RandomizedSearchCV(
+    estimator=model_wrapper,
+    param_distributions=param_dist,
+    n_iter=5, # Limited iterations for quick execution
+    cv=3, # 3-fold cross-validation
+    verbose=2, # Set to 2 to see iteration progress
+    random_state=42,
+)
+
+# NOTE: This may take several minutes to run!
+print("\nStarting 5-iteration Random Search...")
+random_search.fit(X_a_train, y_a_train)
+
+print("\n--- Hybrid Model Evaluation (Optimized CNN) ---")
+print("Best Parameters found:")
+print(random_search.best_params_)
+
+# Evaluate the best model found on the test data (must use reshaped 3D data)
+best_model_wrapper = random_search.best_estimator_
+loss_opt, accuracy_opt = best_model_wrapper.model.evaluate(X_a_test_cnn, y_a_test, verbose=0)
+
+print(f"\nOptimized CNN (Hybrid) Accuracy on UNSW-NB15: {accuracy_opt:.4f}")
+
+#Output:
+
+
+--- Setting up Hybrid Model (CNN + Optimization Proxy) on Dataset A ---
+
+Starting 5-iteration Random Search...
+Fitting 3 folds for each of 5 candidates, totalling 15 fits
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=81, epochs=5, filters=30, model__learning_rate=0.01; total time=  14.1s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=81, epochs=5, filters=30, model__learning_rate=0.01; total time=  15.7s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=81, epochs=5, filters=30, model__learning_rate=0.01; total time=  13.5s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=50, epochs=5, filters=34, model__learning_rate=0.01; total time=  27.2s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=50, epochs=5, filters=34, model__learning_rate=0.01; total time=  26.1s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=50, epochs=5, filters=34, model__learning_rate=0.01; total time=  26.1s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=53, epochs=5, filters=37, model__learning_rate=0.01; total time=  13.9s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=53, epochs=5, filters=37, model__learning_rate=0.01; total time=  15.0s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=53, epochs=5, filters=37, model__learning_rate=0.01; total time=  13.4s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=64, dense_units=59, epochs=10, filters=17, model__learning_rate=0.001; total time=  26.7s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=64, dense_units=59, epochs=10, filters=17, model__learning_rate=0.001; total time=  26.8s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=64, dense_units=59, epochs=10, filters=17, model__learning_rate=0.001; total time=  31.2s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=62, epochs=10, filters=37, model__learning_rate=0.01; total time=  52.5s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=62, epochs=10, filters=37, model__learning_rate=0.01; total time=  54.2s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=62, epochs=10, filters=37, model__learning_rate=0.01; total time=  58.7s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+
+--- Hybrid Model Evaluation (Optimized CNN) ---
+Best Parameters found:
+{'batch_size': 32, 'dense_units': 62, 'epochs': 10, 'filters': 37, 'model__learning_rate': 0.01}
+---------------------------------------------------------------------------
+AttributeError                            Traceback (most recent call last)
+/tmp/ipython-input-193600211.py in <cell line: 0>()
+     70 # Evaluate the best model found on the test data (must use reshaped 3D data)
+     71 best_model_wrapper = random_search.best_estimator_
+---> 72 loss_opt, accuracy_opt = best_model_wrapper.model.evaluate(X_a_test_cnn, y_a_test, verbose=0)
+     73 
+     74 print(f"\nOptimized CNN (Hybrid) Accuracy on UNSW-NB15: {accuracy_opt:.4f}")
+
+AttributeError: 'function' object has no attribute 'evaluate'
+
+
+
+
+
+
+from sklearn.metrics import classification_report
+import numpy as np
+
+print("\n--- Final Hybrid Model Evaluation ---")
+
+# Access the Keras model directly using the correct attribute (usually .model_)
+best_model = random_search.best_estimator_.model_
+
+# Use the retrieved Keras model to evaluate the test data
+loss_opt, accuracy_opt = best_model.evaluate(X_a_test_cnn, y_a_test, verbose=0)
+
+print(f"\nOptimized CNN (Hybrid) Accuracy on UNSW-NB15: {accuracy_opt:.4f}")
+
+# Optional: Print the full classification report
+y_a_pred_opt = (best_model.predict(X_a_test_cnn) > 0.5).astype("int32")
+print("\nOptimized CNN (Hybrid) Classification Report:")
+print(classification_report(y_a_test, y_a_pred_opt, zero_division=0))
+
+print("\n--- ✅ Phase 2: Model Development Complete! ---")
+
+
+#output: 
+
+
+--- Final Hybrid Model Evaluation ---
+
+Optimized CNN (Hybrid) Accuracy on UNSW-NB15: 0.9951
+772/772 ━━━━━━━━━━━━━━━━━━━━ 1s 2ms/step
+
+Optimized CNN (Hybrid) Classification Report:
+              precision    recall  f1-score   support
+
+           0       1.00      0.99      0.99     11100
+           1       0.99      1.00      1.00     13600
+
+    accuracy                           1.00     24700
+   macro avg       1.00      0.99      1.00     24700
+weighted avg       1.00      1.00      1.00     24700
+
+
+--- ✅ Phase 2: Model Development Complete! ---
+
+
+
+
+
+
+
+
+from sklearn.model_selection import RandomizedSearchCV
+from scikeras.wrappers import KerasClassifier
+from scipy.stats import randint as sp_randint
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Conv1D, MaxPooling1D, Flatten, Dense
+import tensorflow as tf
+import numpy as np
+from sklearn.metrics import classification_report
+
+# Define necessary constants for Dataset B
+TIME_STEPS_B = X_b_train.shape[1]
+FEATURES = 1
+
+print("\n--- Setting up Hybrid Model (CNN + Optimization Proxy) on Dataset B (KDD Cup 1999) ---")
+
+# Define a function to create the Keras model with tunable hyperparameters for Dataset B
+def create_tunable_cnn_b(filters=32, dense_units=50, kernel_size=2, learning_rate=0.001):
+    """Creates a CNN model instance with tunable hyperparameters."""
+    model = Sequential([
+        Conv1D(filters=filters, kernel_size=kernel_size, activation='relu', input_shape=(TIME_STEPS_B, FEATURES)),
+        MaxPooling1D(pool_size=2),
+        Flatten(),
+        Dense(dense_units, activation='relu'),
+        Dense(1, activation='sigmoid')
+    ])
+    optimizer = tf.keras.optimizers.Adam(learning_rate=learning_rate)
+    model.compile(optimizer=optimizer, loss='binary_crossentropy', metrics=['accuracy'])
+    return model
+
+# Wrap the Keras model for Scikit-learn compatibility
+model_wrapper_b = KerasClassifier(
+    model=create_tunable_cnn_b,
+    verbose=0,
+    loss="binary_crossentropy",
+    metrics=["accuracy"],
+    filters=32,
+    dense_units=50,
+    kernel_size=2,
+    learning_rate=0.001
+)
+
+# Define the search space for hyperparameters (same as Dataset A)
+param_dist = {
+    'filters': sp_randint(16, 64),
+    'dense_units': sp_randint(30, 100),
+    'batch_size': [32, 64, 128],
+    'epochs': [5, 10],
+    'model__learning_rate': [0.01, 0.001]
+}
+
+# Use Random Search as a proxy for the Metaheuristic Optimization
+random_search_b = RandomizedSearchCV(
+    estimator=model_wrapper_b,
+    param_distributions=param_dist,
+    n_iter=5, # Limited iterations for quick execution
+    cv=3, # 3-fold cross-validation
+    verbose=2,
+    random_state=42,
+)
+
+print("\nStarting 5-iteration Random Search for Dataset B...")
+# Fit using the 2D training data
+random_search_b.fit(X_b_train, y_b_train)
+
+print("\n--- Hybrid Model Evaluation (Optimized CNN) on KDD Cup 1999 ---")
+print("Best Parameters found:")
+print(random_search_b.best_params_)
+
+# Evaluate the best model found on the test data (must use reshaped 3D data)
+best_model_b = random_search_b.best_estimator_.model_
+loss_opt_b, accuracy_opt_b = best_model_b.evaluate(X_b_test_cnn, y_b_test, verbose=0)
+
+print(f"\nOptimized CNN (Hybrid) Accuracy on KDD Cup 1999: {accuracy_opt_b:.4f}")
+
+# Optional: Print the full classification report
+y_b_pred_opt = (best_model_b.predict(X_b_test_cnn) > 0.5).astype("int32")
+print("\nOptimized CNN (Hybrid) Classification Report:")
+print(classification_report(y_b_test, y_b_pred_opt, zero_division=0))
+
+
+
+output: 
+
+
+--- Setting up Hybrid Model (CNN + Optimization Proxy) on Dataset B (KDD Cup 1999) ---
+
+Starting 5-iteration Random Search for Dataset B...
+Fitting 3 folds for each of 5 candidates, totalling 15 fits
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=81, epochs=5, filters=30, model__learning_rate=0.01; total time=  22.8s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=81, epochs=5, filters=30, model__learning_rate=0.01; total time=  20.8s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=81, epochs=5, filters=30, model__learning_rate=0.01; total time=  21.9s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=50, epochs=5, filters=34, model__learning_rate=0.01; total time=  43.7s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=50, epochs=5, filters=34, model__learning_rate=0.01; total time=  42.6s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=50, epochs=5, filters=34, model__learning_rate=0.01; total time=  48.5s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=53, epochs=5, filters=37, model__learning_rate=0.01; total time=  22.7s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=53, epochs=5, filters=37, model__learning_rate=0.01; total time=  21.6s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=128, dense_units=53, epochs=5, filters=37, model__learning_rate=0.01; total time=  25.3s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=64, dense_units=59, epochs=10, filters=17, model__learning_rate=0.001; total time=  46.9s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=64, dense_units=59, epochs=10, filters=17, model__learning_rate=0.001; total time=  46.5s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=64, dense_units=59, epochs=10, filters=17, model__learning_rate=0.001; total time=  47.7s
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=62, epochs=10, filters=37, model__learning_rate=0.01; total time= 1.5min
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=62, epochs=10, filters=37, model__learning_rate=0.01; total time= 1.5min
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+[CV] END batch_size=32, dense_units=62, epochs=10, filters=37, model__learning_rate=0.01; total time= 1.5min
+/usr/local/lib/python3.12/dist-packages/keras/src/layers/convolutional/base_conv.py:113: UserWarning: Do not pass an `input_shape`/`input_dim` argument to a layer. When using Sequential models, prefer using an `Input(shape)` object as the first layer in the model instead.
+  super().__init__(activity_regularizer=activity_regularizer, **kwargs)
+
+--- Hybrid Model Evaluation (Optimized CNN) on KDD Cup 1999 ---
+Best Parameters found:
+{'batch_size': 64, 'dense_units': 59, 'epochs': 10, 'filters': 17, 'model__learning_rate': 0.001}
+
+Optimized CNN (Hybrid) Accuracy on KDD Cup 1999: 0.9973
+1365/1365 ━━━━━━━━━━━━━━━━━━━━ 2s 1ms/step
+
+Optimized CNN (Hybrid) Classification Report:
+              precision    recall  f1-score   support
+
+           0       1.00      1.00      1.00     26350
+           1       1.00      1.00      1.00     17326
+
+    accuracy                           1.00     43676
+   macro avg       1.00      1.00      1.00     43676
+weighted avg       1.00      1.00      1.00     43676
