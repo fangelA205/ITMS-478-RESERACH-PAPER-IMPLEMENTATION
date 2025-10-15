@@ -1,0 +1,83 @@
+print("--- Downloading KDD Cup 1999 Dataset ---")
+!wget -q http://kdd.ics.uci.edu/databases/kddcup99/kddcup.data_10_percent.gz -O kddcup.data_10_percent.gz
+
+# Unzip the file
+!gunzip -f kddcup.data_10_percent.gz
+print("KDD Cup 1999 file restored: kddcup.data_10_percent.")
+
+#Produced the following output#
+--- Downloading KDD Cup 1999 Dataset ---
+KDD Cup 1999 file restored: kddcup.data_10_percent.
+
+************************************************************
+import pandas as pd
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+
+# Define column names (standard for KDD Cup/NSL-KDD)
+columns = [
+    'duration', 'protocol_type', 'service', 'flag', 'src_bytes', 'dst_bytes', 'land', 'wrong_fragment',
+    'urgent', 'hot', 'num_failed_logins', 'logged_in', 'num_compromised', 'root_shell', 'su_attempted',
+    'num_root', 'num_file_creations', 'num_shells', 'num_access_files', 'num_outbound_cmds',
+    'is_host_login', 'is_guest_login', 'count', 'srv_count', 'serror_rate', 'srv_serror_rate',
+    'rerror_rate', 'srv_rerror_rate', 'same_srv_rate', 'diff_srv_rate', 'srv_diff_host_rate',
+    'dst_host_count', 'dst_host_srv_count', 'dst_host_same_srv_rate', 'dst_host_diff_srv_rate',
+    'dst_host_same_src_port_rate', 'dst_host_srv_diff_host_rate', 'dst_host_serror_rate',
+    'dst_host_srv_serror_rate', 'dst_host_rerror_rate', 'dst_host_srv_rerror_rate',
+    'attack_type' # KDD Cup 99 only has the attack type, no 'difficulty' column
+]
+KDD_FILE = 'kddcup.data_10_percent'
+
+# 1. Load data with forced string type
+df_b = pd.read_csv(KDD_FILE, names=columns, index_col=False, dtype=str, low_memory=False)
+print(f"Dataset B (KDD Cup 99) loaded as strings with shape: {df_b.shape}")
+
+# 2. Explicitly coerce numeric columns
+categorical_cols_b_raw = ['protocol_type', 'service', 'flag', 'attack_type']
+numeric_cols = [col for col in columns if col not in categorical_cols_b_raw]
+
+for col in numeric_cols:
+    df_b[col] = pd.to_numeric(df_b[col], errors='coerce')
+
+# 3. Clean Data and separate features
+df_b.replace([np.inf, -np.inf], np.nan, inplace=True)
+df_b.dropna(inplace=True)
+df_b.drop_duplicates(inplace=True)
+print(f"KDD Cup 99 shape after cleaning: {df_b.shape}")
+
+df_b['binary_label'] = df_b['attack_type'].apply(lambda x: 0 if x.strip() == 'normal.' else 1)
+
+X_b = df_b.drop(columns=['attack_type', 'binary_label']) # Drop the original label columns
+y_b = df_b['binary_label']
+
+# 4. Encode Categorical Features
+categorical_cols_b = ['protocol_type', 'service', 'flag']
+
+for col in categorical_cols_b:
+    le = LabelEncoder()
+    X_b[col] = le.fit_transform(X_b[col])
+
+# 5. Normalize Data
+scaler_b = MinMaxScaler()
+X_b_scaled = scaler_b.fit_transform(X_b)
+X_b = pd.DataFrame(X_b_scaled, columns=X_b.columns)
+
+# 6. Split Data
+X_b_train, X_b_test, y_b_train, y_b_test = train_test_split(
+    X_b, y_b, test_size=0.3, random_state=42, stratify=y_b
+)
+
+print("-" * 50)
+print("KDD Cup 1999 (Dataset B) Split Complete:")
+print(f"X_b_train shape: {X_b_train.shape}")
+print(f"X_b_test shape: {X_b_test.shape}")
+print("-" * 50)
+
+#The following data was outputed#
+Dataset B (KDD Cup 99) loaded as strings with shape: (494021, 42)
+KDD Cup 99 shape after cleaning: (145586, 42)
+--------------------------------------------------
+KDD Cup 1999 (Dataset B) Split Complete:
+X_b_train shape: (101910, 41)
+X_b_test shape: (43676, 41)
