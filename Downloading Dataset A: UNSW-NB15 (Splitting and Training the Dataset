@@ -1,0 +1,78 @@
+# Re-download UNSW-NB15
+print("--- Restoring UNSW-NB15... ---")
+# This command was previously confirmed to work
+!kaggle datasets download -d mrwellsdavid/unsw-nb15
+
+# Unzip the downloaded file
+print("--- Unzipping files ---")
+!unzip -o unsw-nb15.zip
+!rm unsw-nb15.zip # Clean up the zip file
+print("UNSW-NB15 restored.")
+
+#Displayed the following#
+--- Restoring UNSW-NB15... ---
+Traceback (most recent call last):
+  File "/usr/local/bin/kaggle", line 10, in <module>
+    sys.exit(main())
+             ^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/kaggle/cli.py", line 68, in main
+    out = args.func(**command_args)
+          ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/kaggle/api/kaggle_api_extended.py", line 1741, in dataset_download_cli
+    with self.build_kaggle_client() as kaggle:
+         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/usr/local/lib/python3.12/dist-packages/kaggle/api/kaggle_api_extended.py", line 688, in build_kaggle_client
+    username=self.config_values['username'],
+             ~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^
+KeyError: 'username'
+--- Unzipping files ---
+unzip:  cannot find or open unsw-nb15.zip, unsw-nb15.zip.zip or unsw-nb15.zip.ZIP.
+rm: cannot remove 'unsw-nb15.zip': No such file or directory
+UNSW-NB15 restored.
+
+*****************************************************
+import numpy as np
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import LabelEncoder, MinMaxScaler
+
+# 1. Clean Data
+df_a.replace([np.inf, -np.inf], np.nan, inplace=True)
+df_a.dropna(inplace=True)
+df_a.drop_duplicates(inplace=True)
+print(f"UNSW-NB15 shape after cleaning: {df_a.shape}")
+
+# 2. Separate Features and Target
+# Using 'label' for binary classification (Attack or Benign)
+X_a = df_a.drop(columns=['label', 'attack_cat'])
+y_a = df_a['label']
+
+# 3. Encode Categorical Features
+categorical_cols_a = X_a.select_dtypes(include=['object']).columns
+for col in categorical_cols_a:
+    le = LabelEncoder()
+    X_a[col] = X_a[col].astype(str).fillna('missing')
+    X_a[col] = le.fit_transform(X_a[col])
+
+# 4. Normalize Data
+scaler_a = MinMaxScaler()
+X_a_scaled = scaler_a.fit_transform(X_a)
+X_a = pd.DataFrame(X_a_scaled, columns=X_a.columns)
+
+# 5. Split Data
+X_a_train, X_a_test, y_a_train, y_a_test = train_test_split(
+    X_a, y_a, test_size=0.3, random_state=42, stratify=y_a
+)
+
+print("-" * 50)
+print("UNSW-NB15 (Dataset A) Split Complete:")
+print(f"X_a_train shape: {X_a_train.shape}")
+print(f"X_a_test shape: {X_a_test.shape}")
+print("-" * 50)
+
+#Produced the following after running#
+UNSW-NB15 shape after cleaning: (82332, 45)
+--------------------------------------------------
+UNSW-NB15 (Dataset A) Split Complete:
+X_a_train shape: (57632, 43)
+X_a_test shape: (24700, 43)
+--------------------------------------------------
