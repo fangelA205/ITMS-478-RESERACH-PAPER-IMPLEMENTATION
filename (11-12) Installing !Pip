@@ -1,0 +1,83 @@
+!pip install scikeras
+
+
+Output:
+
+Collecting scikeras
+  Downloading scikeras-0.13.0-py3-none-any.whl.metadata (3.1 kB)
+Requirement already satisfied: keras>=3.2.0 in /usr/local/lib/python3.12/dist-packages (from scikeras) (3.10.0)
+Requirement already satisfied: scikit-learn>=1.4.2 in /usr/local/lib/python3.12/dist-packages (from scikeras) (1.6.1)
+Requirement already satisfied: absl-py in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (1.4.0)
+Requirement already satisfied: numpy in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (2.0.2)
+Requirement already satisfied: rich in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (13.9.4)
+Requirement already satisfied: namex in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (0.1.0)
+Requirement already satisfied: h5py in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (3.14.0)
+Requirement already satisfied: optree in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (0.17.0)
+Requirement already satisfied: ml-dtypes in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (0.5.3)
+Requirement already satisfied: packaging in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (25.0)
+Requirement already satisfied: scipy>=1.6.0 in /usr/local/lib/python3.12/dist-packages (from scikit-learn>=1.4.2->scikeras) (1.16.2)
+Requirement already satisfied: joblib>=1.2.0 in /usr/local/lib/python3.12/dist-packages (from scikit-learn>=1.4.2->scikeras) (1.5.2)
+Requirement already satisfied: threadpoolctl>=3.1.0 in /usr/local/lib/python3.12/dist-packages (from scikit-learn>=1.4.2->scikeras) (3.6.0)
+Requirement already satisfied: typing-extensions>=4.6.0 in /usr/local/lib/python3.12/dist-packages (from optree->keras>=3.2.0->scikeras) (4.15.0)
+Requirement already satisfied: markdown-it-py>=2.2.0 in /usr/local/lib/python3.12/dist-packages (from rich->keras>=3.2.0->scikeras) (4.0.0)
+Requirement already satisfied: pygments<3.0.0,>=2.13.0 in /usr/local/lib/python3.12/dist-packages (from rich->keras>=3.2.0->scikeras) (2.19.2)
+Requirement already satisfied: mdurl~=0.1 in /usr/local/lib/python3.12/dist-packages (from markdown-it-py>=2.2.0->rich->keras>=3.2.0->scikeras) (0.1.2)
+Downloading scikeras-0.13.0-py3-none-any.whl (26 kB)
+Installing collected packages: scikeras
+Successfully installed scikeras-0.13.0
+
+
+
+# 1. Re-install the Keras wrapper library
+!pip install scikeras
+
+# 2. Re-install the compatible scikit-learn version
+!pip install scikit-learn==1.3.2
+
+
+output: 
+
+Requirement already satisfied: scikeras in /usr/local/lib/python3.12/dist-packages (0.13.0)
+Requirement already satisfied: keras>=3.2.0 in /usr/local/lib/python3.12/dist-packages (from scikeras) (3.10.0)
+Collecting scikit-learn>=1.4.2 (from scikeras)
+  Using cached scikit_learn-1.7.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl.metadata (11 kB)
+Requirement already satisfied: absl-py in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (1.4.0)
+Requirement already satisfied: numpy in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (1.26.4)
+Requirement already satisfied: rich in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (13.9.4)
+Requirement already satisfied: namex in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (0.1.0)
+Requirement already satisfied: h5py in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (3.14.0)
+Requirement already satisfied: optree in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (0.17.0)
+Requirement already satisfied: ml-dtypes in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (0.5.3)
+Requirement already satisfied: packaging in /usr/local/lib/python3.12/dist-packages (from keras>=3.2.0->scikeras) (25.0)
+Requirement already satisfied: scipy>=1.8.0 in /usr/local/lib/python3.12/dist-packages (from scikit-learn>=1.4.2->scikeras) (1.16.2)
+Requirement already satisfied: joblib>=1.2.0 in /usr/local/lib/python3.12/dist-packages (from scikit-learn>=1.4.2->scikeras) (1.5.2)
+Requirement already satisfied: threadpoolctl>=3.1.0 in /usr/local/lib/python3.12/dist-packages (from scikit-learn>=1.4.2->scikeras) (3.6.0)
+Requirement already satisfied: typing-extensions>=4.6.0 in /usr/local/lib/python3.12/dist-packages (from optree->keras>=3.2.0->scikeras) (4.15.0)
+Requirement already satisfied: markdown-it-py>=2.2.0 in /usr/local/lib/python3.12/dist-packages (from rich->keras>=3.2.0->scikeras) (4.0.0)
+Requirement already satisfied: pygments<3.0.0,>=2.13.0 in /usr/local/lib/python3.12/dist-packages (from rich->keras>=3.2.0->scikeras) (2.19.2)
+Requirement already satisfied: mdurl~=0.1 in /usr/local/lib/python3.12/dist-packages (from markdown-it-py>=2.2.0->rich->keras>=3.2.0->scikeras) (0.1.2)
+Using cached scikit_learn-1.7.2-cp312-cp312-manylinux2014_x86_64.manylinux_2_17_x86_64.whl (9.5 MB)
+Installing collected packages: scikit-learn
+  Attempting uninstall: scikit-learn
+    Found existing installation: scikit-learn 1.3.2
+    Uninstalling scikit-learn-1.3.2:
+      Successfully uninstalled scikit-learn-1.3.2
+Successfully installed scikit-learn-1.7.2
+Collecting scikit-learn==1.3.2
+  Using cached scikit_learn-1.3.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl.metadata (11 kB)
+Requirement already satisfied: numpy<2.0,>=1.17.3 in /usr/local/lib/python3.12/dist-packages (from scikit-learn==1.3.2) (1.26.4)
+Requirement already satisfied: scipy>=1.5.0 in /usr/local/lib/python3.12/dist-packages (from scikit-learn==1.3.2) (1.16.2)
+Requirement already satisfied: joblib>=1.1.1 in /usr/local/lib/python3.12/dist-packages (from scikit-learn==1.3.2) (1.5.2)
+Requirement already satisfied: threadpoolctl>=2.0.0 in /usr/local/lib/python3.12/dist-packages (from scikit-learn==1.3.2) (3.6.0)
+Using cached scikit_learn-1.3.2-cp312-cp312-manylinux_2_17_x86_64.manylinux2014_x86_64.whl (10.8 MB)
+Installing collected packages: scikit-learn
+  Attempting uninstall: scikit-learn
+    Found existing installation: scikit-learn 1.7.2
+    Uninstalling scikit-learn-1.7.2:
+      Successfully uninstalled scikit-learn-1.7.2
+ERROR: pip's dependency resolver does not currently take into account all the packages that are installed. This behaviour is the source of the following dependency conflicts.
+scikeras 0.13.0 requires scikit-learn>=1.4.2, but you have scikit-learn 1.3.2 which is incompatible.
+cuml-cu12 25.6.0 requires scikit-learn>=1.5, but you have scikit-learn 1.3.2 which is incompatible.
+imbalanced-learn 0.14.0 requires scikit-learn<2,>=1.4.2, but you have scikit-learn 1.3.2 which is incompatible.
+umap-learn 0.5.9.post2 requires scikit-learn>=1.6, but you have scikit-learn 1.3.2 which is incompatible.
+Successfully installed scikit-learn-1.3.2
