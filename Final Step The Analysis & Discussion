@@ -1,0 +1,26 @@
+Model Performance Analysis (Which Model performed Best?)
+
+Based on typical results with these datasets, our Deep Learning Model (or Hybrid Ensemble) likely showed the best overall performance.
+Deep models are excellent at finding subtle, non-linear patterns. This is crucial for distinguishing complex attacks like R2L and U2R
+from normal traffic in datasets like UNSW-NB15, where the attack signatures are very subtle.
+
+The High Recall Model: While a simple model like a Decision Tree, might have high accuracy on KDD Cup 1999 cause of it's duplicates, it 
+likely failed on the more realistic UNSW-NB15. 
+
+**LIMITATIONS**
+1. Dataset Imbalance
+Problem: In both datasets, Normal traffic heavily outnumbers the Attack traffic, especially for critical U2R/R2L attacks
+Impact: Our model is naturally biased toward classifying everything as Normal, leading to a high False Negative Rate missing actual attacks. This is a fatal flaw in a security system.
+
+2. Computational Cost
+Problem: Deep Learning models, especially those trained on millions of records, require powerful GPUs and significant time to train.
+Impact: This makes model updates and retraining expensive and slow, which is bad for a field where threats evolve daily.
+
+3. Model Generalization 
+Problem: Our model is trained on historical data (KDD '99) and a synthetic snapshot (UNSW-NB15).
+Impact: It is fundamentally unprepared for zero-day attacks—new attacks seen in a real network today. It can only detect attacks similar to those it was trained on.
+
+**RECOMMENDATIONS**
+1. Move away from static CSV files. Implement the system to consume network traffic flows like NetFlow or something similar, as they happen.
+2. Use techniques like Continual Learning or Online Learning
+3. Implement methods to explain why the model classified a connection as an attack
